@@ -18,7 +18,7 @@ class ViewController: UIViewController {
     var die2 = 1
     var rolls = [String]()
     var total = 0
-    var status = statusEnum.Continue
+    var point = 0
     
     enum statusEnum {
         case Continue
@@ -37,37 +37,55 @@ class ViewController: UIViewController {
     }
     
     @IBAction func btnRollDice(_ sender: Any) {
-        status = RollResults(total)
         
-        if(status == .Lose){
-            //update rolls array with Lose
-            UpdateLables(RollDice(die1, die2))
-        } else if (status == .Win){
-            //update rolls array with Win
-            UpdateLables(RollDice(die1, die2))
-        } else {
-            //continue
-            UpdateLables(RollDice(die1, die2))
+        let loseMsg = "Player LOSES :("
+        let winMsg = "Player WINS!"
+        
+        if(rolls.contains(loseMsg) || rolls.contains(winMsg)) {
+             die1 = 1
+             die2 = 1
+             rolls = [String]()
+             total = 0
+             point = 0
         }
         
+        let roll = RollDice()
+
+        total = roll.die1 + roll.die2
+        
+        let status = RollResults(roll)
+        
+        if(status == .Lose){
+            rolls.append(loseMsg)
+            UpdateRolls()
+            
+        } else if (status == .Win){
+            rolls.append(winMsg)
+            UpdateRolls()
+        } else {
+            UpdateRolls()
+        }
+ 
     }
     
-    func RollDice(_ die1: Int, _ die2: Int) -> (die1: Int, die2: Int){
+    func RollDice() -> (die1: Int, die2: Int){
         self.die1 = Int.random(in: 1..<7)
         self.die2 = Int.random(in: 1..<7)
         
         return (die1, die2)
     }
     
-    func UpdateLables(_ tuple : (Int, Int)) {
-        total = die1 + die2
+    func UpdateDice(_ tuple : (Int, Int)) {
+        
         lblTotal.text = "The Total is " + String(total);
         lblDice1.text = String(die1);
         lblDice2.text = String(die2);
         
         rolls.append("Player Rolled: " + String(die1) + " + "
                         + String(die2) + " = " + String(total))
-        
+    }
+    
+    func UpdateRolls() {
         var rollsText = "";
         
         for s in rolls {
@@ -86,22 +104,31 @@ class ViewController: UIViewController {
         
     }
     
-    func RollResults(_ total: Int) -> ViewController.statusEnum {
-        // Determin the results of the roll:
-        // Win, Loss, Point Round.
-        // Display the result and do necessary logic.
-        // if win or loss gameOver = true else false.
-        // Append to the rolls array and then update
-        // lable to add text to the rolls label
-        
-        switch (total) {
-        case 7, 11:
-            return .Win
-        case 2, 3, 12:
-            return .Lose
-        default:
-            return .Continue
+    func RollResults(_ tuple : (Int, Int)) -> ViewController.statusEnum {
+        UpdateDice(tuple)
+        let total = die1 + die2
+        if(point == 0){
+            switch (total) {
+            case 7, 11:
+                return .Win
+            case 2, 3, 12:
+                return .Lose
+            default:
+                point = total
+                rolls.append("Point is: " + String(point))
+                return .Continue
+            }
+        } else {
+            switch total {
+            case point:
+                return .Win
+            case 7:
+                return .Lose
+            default:
+                return .Continue
+            }
         }
+        
         
     }
     
